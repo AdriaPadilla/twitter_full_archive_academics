@@ -1,11 +1,13 @@
 import pandas as pd
 from itertools import permutations
 
+
 def graph(df):
     user_hashtag_list = []
     cohashtag_list = []
     coanotation_list = []
     coanotation_nodes_list = []
+    user_mentions_list = []
 
     print("creating networks")
     for index, row in df.iterrows():
@@ -50,10 +52,10 @@ def graph(df):
 
         # CCOANOTATIONS graph
         anotation_type = row["ent_anotation_types"].split(";")
-        anotation_name = row["ent_anotation_elements"].split(";")
 
         n = len(anotation_type)
         if n > 1:
+            anotation_name = row["ent_anotation_elements"].split(";")
 
             # COANPTATIONS NODES TABLE
             for type, name in zip(anotation_type, anotation_name):
@@ -76,6 +78,36 @@ def graph(df):
                     "target_type": type[1],
                 }, index=[0])
                 coanotation_list.append(co_anotation_df)
+        else:
+            pass
+
+        # USERS / ANOTATION GRAPH
+
+            # TO-DO
+
+        # MENTION GRAPH
+
+        mentions = row["ent_mentions"]
+        diferent_mentions = mentions.split(";")
+        n = len(diferent_mentions)
+        for mention in diferent_mentions:
+            mentions_frame = pd.DataFrame({
+                "source": username,
+                "target": mention,
+            }, index=[0])
+            user_mentions_list.append(mentions_frame)
+
+        if n > 1:
+            mentions_permute = permutations(diferent_mentions, 2)
+            for permute in mentions_permute:
+                co_mentions_frame = pd.DataFrame({
+                    "source": permute[0],
+                    "target": permute[1],
+                }, index=[0])
+                user_mentions_list.append(co_mentions_frame)
+        else:
+            pass
+
 
     #### BUILD FINAL DATASETS
 
@@ -97,3 +129,8 @@ def graph(df):
     coanotation_nodes = pd.concat(coanotation_nodes_list)
     coanotation_nodes.drop_duplicates()
     coanotation_nodes.to_csv("coanotation_nodes_list.csv", index=False)
+
+    # MENTIONS LIST GRAPH
+
+    mention_graph = pd.concat(user_mentions_list)
+    mention_graph.to_csv("mention-graph.csv", index=False, header=False)
